@@ -58,11 +58,21 @@
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
   when: not ovos_installer_cpu_is_capable | bool
 
-- name: Install ggwave Python library
+- name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv with ggwave dependencies
   moreati.uv.pip:
+    name:
+      - setuptools
+      - wheel
+      - cython
+    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+  when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
+
+- name: Install ggwave Python library
+  environment:
+    GGWAVE_USE_CYTHON: True
+  ansible.builtin.pip:  # moreati.uv.pip somehow doesn't find Cython
     name: ggwave
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    extra_args: "--extra-index-url https://termux-user-repository.github.io/pypi/"
   when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
 
 - name: Install Open Voice OS in Python venv
